@@ -120,6 +120,21 @@ class CVectorWriter
     {
         return nType;
     }
+    void seek(size_t nSize)
+    {
+        nPos += nSize;
+        if(nPos > vchData.size())
+            vchData.resize(nPos);
+    }
+    size_t GetPos() const {
+        return nPos;
+    }
+    void SetPos(size_t pos) {
+        nPos = pos;
+        if(nPos > vchData.size())
+            vchData.resize(nPos);
+    }
+
 private:
     const int nType;
     const int nVersion;
