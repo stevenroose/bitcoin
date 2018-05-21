@@ -25,6 +25,7 @@
 #include <key.h>
 #include <validation.h>
 #include <miner.h>
+#include <miningserver.h>
 #include <netbase.h>
 #include <net.h>
 #include <net_processing.h>
@@ -80,6 +81,7 @@ static const bool DEFAULT_STOPAFTERBLOCKIMPORT = false;
 static constexpr int DUMP_BANS_INTERVAL = 60 * 15;
 
 std::unique_ptr<CConnman> g_connman;
+std::unique_ptr<MiningServer> g_mining_server;
 std::unique_ptr<PeerLogicValidation> peerLogic;
 std::unique_ptr<BanMan> g_banman;
 
@@ -188,6 +190,9 @@ void Interrupt()
     if (g_txindex) {
         g_txindex->Interrupt();
     }
+    if (g_mining_server) {
+        g_mining_server->Interrupt();
+    }
 }
 
 void Shutdown(InitInterfaces& interfaces)
@@ -219,6 +224,9 @@ void Shutdown(InitInterfaces& interfaces)
     if (peerLogic) UnregisterValidationInterface(peerLogic.get());
     if (g_connman) g_connman->Stop();
     if (g_txindex) g_txindex->Stop();
+
+    if (g_mining_server) g_mining_server->Stop();
+    g_mining_server.reset();
 
     StopTorControl();
 
@@ -409,6 +417,9 @@ void SetupServerArgs()
     gArgs.AddArg("-bantime=<n>", strprintf("Number of seconds to keep misbehaving peers from reconnecting (default: %u)", DEFAULT_MISBEHAVING_BANTIME), false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-bind=<addr>", "Bind to given address and always listen on it. Use [host]:port notation for IPv6", false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-connect=<ip>", "Connect only to the specified node; -noconnect disables automatic connections (the rules for this peer are the same as for -addnode). This option can be specified multiple times to connect to multiple nodes.", false, OptionsCategory::CONNECTION);
+    gArgs.AddArg("-miningbind=<addr>", "Bind to the given address for the mining server.", false, OptionsCategory::CONNECTION);
+    gArgs.AddArg("-miningserverid=<n>", "A nonce pushed into block templates. If you have multiple servers generating block templates, set this to avoid duplicating work.", false, OptionsCategory::CONNECTION);
+    gArgs.AddArg("-miningkeyfile=<file>", "The file name or path of the private key used by the mining server for authentication", true, OptionsCategory::CONNECTION);
     gArgs.AddArg("-discover", "Discover own IP addresses (default: 1 when listening and no -externalip or -proxy)", false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-dns", strprintf("Allow DNS lookups for -addnode, -seednode and -connect (default: %u)", DEFAULT_NAME_LOOKUP), false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-dnsseed", "Query for peer addresses via DNS lookup, if low on addresses (default: 1 unless -connect used)", false, OptionsCategory::CONNECTION);
@@ -1334,6 +1345,12 @@ bool AppInitMain(InitInterfaces& interfaces)
     peerLogic.reset(new PeerLogicValidation(g_connman.get(), g_banman.get(), scheduler, gArgs.GetBoolArg("-enablebip61", DEFAULT_ENABLE_BIP61)));
     RegisterValidationInterface(peerLogic.get());
 
+    assert(!g_mining_server);
+    CKey mining_server_auth_key;
+    if (!MiningServer::ReadAuthKey(mining_server_auth_key)) return InitError("Failed to read mining server auth key");
+    uint64_t mining_server_node_id = gArgs.GetArg("-miningserverid", 0);
+    g_mining_server = std::unique_ptr<MiningServer>(new MiningServer(mining_server_auth_key, mining_server_node_id));
+
     // sanitize comments per BIP-0014, format user agent and check total size
     std::vector<std::string> uacomments;
     for (const std::string& cmt : gArgs.GetArgs("-uacomment")) {
@@ -1796,6 +1813,17 @@ bool AppInitMain(InitInterfaces& interfaces)
     }
     if (!g_connman->Start(scheduler, connOptions)) {
         return false;
+    }
+
+    std::string mining_server_bind = gArgs.GetArg("-miningbind", "0.0.0.0");
+
+    CService mining_bind_addr;
+    if (!Lookup(mining_server_bind.c_str(), mining_bind_addr, BaseParams().MiningPort(), false)) {
+        return InitError(ResolveErrMsg("miningbind", mining_server_bind));
+    }
+
+    if (!g_mining_server->Start(mining_bind_addr, CScript())) {
+        return InitError("Failed to start mining server");
     }
 
     // ********************************************************* Step 13: finished
