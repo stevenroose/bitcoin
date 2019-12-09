@@ -753,8 +753,12 @@ static void ReadCallback(evutil_socket_t sock, short events, void* event_ctx) {
                             writer << prev_index->GetBlockHeader();
                         }
 
-                        writer << (uint32_t)32;
-                        writer.write((const char*)template_it->second.m_original_coinbase_tx->vin[0].scriptWitness.stack[0].data(), 32);
+                        if (template_it->second.m_original_coinbase_tx->vin[0].scriptWitness.IsNull()) {
+                            writer << (uint32_t)0;
+                        } else {
+                            writer << (uint32_t)32;
+                            writer.write((const char*)template_it->second.m_original_coinbase_tx->vin[0].scriptWitness.stack[0].data(), 32);
+                        }
 
                         uint32_t tx_count = template_it->second.m_block->vtx.size() - 1;
                         writer << tx_count;
