@@ -545,8 +545,6 @@ bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& 
                         return set_error(serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
                     valtype& vch1 = stacktop(-2);
                     valtype& vch2 = stacktop(-1);
-                    if (vch1.size() + vch2.size() > MAX_SCRIPT_ELEMENT_SIZE)
-                        return set_error(serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
                     vch1.insert(vch1.end(), vch2.begin(), vch2.end());
                     stack.pop_back();
                 }
@@ -1287,7 +1285,16 @@ bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& 
             }
 
             // Size limits
+            // limit number of elements in stacks
             if (stack.size() + altstack.size() > MAX_STACK_SIZE)
+                return set_error(serror, SCRIPT_ERR_STACK_SIZE);
+            // limit total number of bytes in stacks
+            unsigned int total_bytes = 0;
+            for (size_t i = 0; i < stack.size() ; i++)
+                total_bytes += stack[i].size();
+            for (size_t i = 0; i < altstack.size() ; i++)
+                total_bytes += altstack[i].size();
+            if (total_bytes > MAX_STACK_BYTES)
                 return set_error(serror, SCRIPT_ERR_STACK_SIZE);
         }
     }
