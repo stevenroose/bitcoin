@@ -409,9 +409,9 @@ static void MutateTxAddOutMultiSig(CMutableTransaction& tx, const std::string& s
         scriptPubKey = GetScriptForDestination(WitnessV0ScriptHash(scriptPubKey));
     }
     if (bScriptHash) {
-        if (scriptPubKey.size() > MAX_SCRIPT_ELEMENT_SIZE) {
+        if (scriptPubKey.size() > MAX_SCRIPT_ELEMENT_PUSH_SIZE) {
             throw std::runtime_error(strprintf(
-                        "redeemScript exceeds size limit: %d > %d", scriptPubKey.size(), MAX_SCRIPT_ELEMENT_SIZE));
+                        "redeemScript exceeds size limit: %d > %d", scriptPubKey.size(), MAX_SCRIPT_ELEMENT_PUSH_SIZE));
         }
         // Get the ID for the script, and then construct a P2SH destination for it.
         scriptPubKey = GetScriptForDestination(ScriptHash(scriptPubKey));
@@ -484,9 +484,9 @@ static void MutateTxAddOutScript(CMutableTransaction& tx, const std::string& str
         scriptPubKey = GetScriptForDestination(WitnessV0ScriptHash(scriptPubKey));
     }
     if (bScriptHash) {
-        if (scriptPubKey.size() > MAX_SCRIPT_ELEMENT_SIZE) {
+        if (scriptPubKey.size() > MAX_SCRIPT_ELEMENT_PUSH_SIZE) {
             throw std::runtime_error(strprintf(
-                        "redeemScript exceeds size limit: %d > %d", scriptPubKey.size(), MAX_SCRIPT_ELEMENT_SIZE));
+                        "redeemScript exceeds size limit: %d > %d", scriptPubKey.size(), MAX_SCRIPT_ELEMENT_PUSH_SIZE));
         }
         scriptPubKey = GetScriptForDestination(ScriptHash(scriptPubKey));
     }

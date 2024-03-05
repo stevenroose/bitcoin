@@ -229,8 +229,8 @@ CTxDestination AddAndGetMultisigDestination(const int required, const std::vecto
         }
     }
 
-    if (type == OutputType::LEGACY && script_out.size() > MAX_SCRIPT_ELEMENT_SIZE) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, (strprintf("redeemScript exceeds size limit: %d > %d", script_out.size(), MAX_SCRIPT_ELEMENT_SIZE)));
+    if (type == OutputType::LEGACY && script_out.size() > MAX_SCRIPT_ELEMENT_PUSH_SIZE) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, (strprintf("redeemScript exceeds size limit: %d > %d", script_out.size(), MAX_SCRIPT_ELEMENT_PUSH_SIZE)));
     }
 
     // Make the address

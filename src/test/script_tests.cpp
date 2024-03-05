@@ -1309,7 +1309,7 @@ BOOST_AUTO_TEST_CASE(script_standard_push)
         BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_OK, ScriptErrorString(err));
     }
 
-    for (unsigned int i=0; i<=MAX_SCRIPT_ELEMENT_SIZE; i++) {
+    for (unsigned int i=0; i<=MAX_SCRIPT_ELEMENT_PUSH_SIZE; i++) {
         std::vector<unsigned char> data(i, '\111');
         CScript script;
         script << data;
@@ -1926,9 +1926,9 @@ BOOST_AUTO_TEST_CASE(cat_dup_test)
             witVerifyScript.push_back(OP_CAT);
             int expectedErr = SCRIPT_ERR_OK;
             unsigned int catedStackElementSize = witData.at(0).size()*pow(2, dups);
-            if (catedStackElementSize > MAX_SCRIPT_ELEMENT_SIZE)
+            if (catedStackElementSize > MAX_SCRIPT_ELEMENT_PUSH_SIZE)
                 expectedErr = SCRIPT_ERR_INVALID_STACK_OPERATION;
-            if (elementSize > MAX_SCRIPT_ELEMENT_SIZE)
+            if (elementSize > MAX_SCRIPT_ELEMENT_PUSH_SIZE)
                 expectedErr = SCRIPT_ERR_PUSH_SIZE;
             DoTapscriptTest(witVerifyScript, witData, "CAT DUP test", expectedErr);
         }

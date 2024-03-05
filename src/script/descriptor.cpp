@@ -1355,8 +1355,8 @@ std::unique_ptr<DescriptorImpl> ParseScript(uint32_t& key_exp_index, Span<const 
         }
         if (ctx == ParseScriptContext::P2SH) {
             // This limits the maximum number of compressed pubkeys to 15.
-            if (script_size + 3 > MAX_SCRIPT_ELEMENT_SIZE) {
-                error = strprintf("P2SH script is too large, %d bytes is larger than %d bytes", script_size + 3, MAX_SCRIPT_ELEMENT_SIZE);
+            if (script_size + 3 > MAX_SCRIPT_ELEMENT_PUSH_SIZE) {
+                error = strprintf("P2SH script is too large, %d bytes is larger than %d bytes", script_size + 3, MAX_SCRIPT_ELEMENT_PUSH_SIZE);
                 return nullptr;
             }
         }
