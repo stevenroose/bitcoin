@@ -28,6 +28,7 @@
 #endif
 
 #include <cstdint>
+#include <cmath>
 #include <fstream>
 #include <string>
 #include <vector>

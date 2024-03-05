@@ -398,8 +398,8 @@ public:
         };
         consensus.vDeployments[Consensus::DEPLOYMENT_OP_CAT] = SetupDeployment{
             .year = 2024,
-            .revision = 0,
             .number = 1,
+            .revision = 0,
             .start = 1704085200, // 2024-01-01
             .timeout = 2019704400, // 2034-01-01
             .activate = 0x62000100,
