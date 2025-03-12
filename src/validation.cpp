@@ -2410,6 +2410,8 @@ static unsigned int GetBlockScriptFlags(const CBlockIndex& block_index, const Ch
         flags = it->second;
     }
 
+    flags |= SCRIPT_VERIFY_CHECKTEMPLATEVERIFY;
+
     // Enforce the DERSIG (BIP66) rule
     if (DeploymentActiveAt(block_index, chainman, Consensus::DEPLOYMENT_DERSIG)) {
         flags |= SCRIPT_VERIFY_DERSIG;
